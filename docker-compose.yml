@@ -117,6 +117,7 @@ services:
           - INSTALL_LIBPNG=${WORKSPACE_INSTALL_LIBPNG}
           - INSTALL_IONCUBE=${WORKSPACE_INSTALL_IONCUBE}
           - INSTALL_MYSQL_CLIENT=${WORKSPACE_INSTALL_MYSQL_CLIENT}
+          - INSTALL_CLICKHOUSE_CLIENT=${WORKSPACE_INSTALL_CLICKHOUSE_CLIENT}
           - INSTALL_PING=${WORKSPACE_INSTALL_PING}
           - INSTALL_SSHPASS=${WORKSPACE_INSTALL_SSHPASS}
           - INSTALL_INOTIFY=${WORKSPACE_INSTALL_INOTIFY}
@@ -127,6 +128,7 @@ services:
           - PUID=${WORKSPACE_PUID}
           - PGID=${WORKSPACE_PGID}
           - CHROME_DRIVER_VERSION=${WORKSPACE_CHROME_DRIVER_VERSION}
+          - CLICKHOUSE_VERSION=${CLICKHOUSE_VERSION}
           - NODE_VERSION=${WORKSPACE_NODE_VERSION}
           - YARN_VERSION=${WORKSPACE_YARN_VERSION}
           - DRUSH_VERSION=${WORKSPACE_DRUSH_VERSION}
@@ -402,6 +404,38 @@ services:
       ports:
         - "${MYSQL_PORT}:3306"
       networks:
+        - backend
+
+### ClickHouse #############################################
+
+    clickhouse:
+      build:
+        context: ./clickhouse
+        args:
+          - CLICKHOUSE_VERSION=${CLICKHOUSE_VERSION}
+          - CLICKHOUSE_GOSU_VERSION=${CLICKHOUSE_GOSU_VERSION}
+      environment:
+        - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+        - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      volumes:
+        - ${DATA_PATH_HOST}/clickhouse:/var/lib/clickhouse
+        - ${CLICKHOUSE_CUSTOM_CONFIG}:/etc/clickhouse-server/config.xml
+        - ${CLICKHOUSE_USERS_CUSTOM_CONFIG}:/etc/clickhouse-server/users.xml
+        - ${CLICKHOUSE_HOST_LOG_PATH}:/var/log/clickhouse
+        - ${CLICKHOUSE_ENTRYPOINT_INITDB}:/docker-entrypoint-initdb.d
+      links:
+        - workspace
+      ports:
+        - "${CLICKHOUSE_HTTP_PORT}:8123"
+        - "${CLICKHOUSE_CLIENT_PORT}:9000"
+        - "${CLICKHOUSE_NATIVE_PORT}:9009"
+      ulimits:
+        nproc: 65535
+        nofile:
+         soft: 262144
+         hard: 262144
+      networks:
+        - frontend
         - backend
 
 ### Percona ################################################

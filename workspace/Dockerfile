@@ -1165,6 +1165,33 @@ RUN if [ ${INSTALL_MYSQL_CLIENT} = true ]; then \
 ;fi
 
 ###########################################################################
+# ClickHouse Client:
+###########################################################################
+
+USER root
+
+ARG INSTALL_CLICKHOUSE_CLIENT=false
+ARG CLICKHOUSE_REPOSITORY="deb http://repo.yandex.ru/clickhouse/deb/stable/ main/"
+ARG CLICKHOUSE_VERSION=19.19.1.*
+
+RUN if [ ${INSTALL_CLICKHOUSE_CLIENT} = true ]; then \
+    apt-get update -yqq && \
+    && apt-get install --yes --no-install-recommends \
+        apt-transport-https \
+        dirmngr \
+        gnupg \
+    && mkdir -p /etc/apt/sources.list.d \
+    && apt-key adv --keyserver keyserver.ubuntu.com --recv E0C56BD4 \
+    && echo $CLICKHOUSE_REPOSITORY > /etc/apt/sources.list.d/clickhouse.list \
+    && apt-get update \
+        apt-get install --allow-unauthenticated --yes --no-install-recommends \
+            clickhouse-client=$CLICKHOUSE_VERSION \
+            clickhouse-common-static=$CLICKHOUSE_VERSION \
+            locales \
+            tzdata \
+;fi
+
+###########################################################################
 # ping:
 ###########################################################################
 
